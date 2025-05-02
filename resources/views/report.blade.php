@@ -34,14 +34,49 @@
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Generate Report</button>
-                        <a href="{{ route('sales.export') }}" 
-                        class="btn btn-sm btn-success">Export All Sales to CSV</a>
                     </div>
                 </form>
             </div>
         </div>
         
-        @if(isset($reports) && count($reports) > 0)
+        @if(isset($isPaginated) && $isPaginated)
+            <div class="card">
+                <div class="card-header">
+                    <h5>All Sales Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table id="salesTable" class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product ID</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity</th>
+                                    <th>Sale Date</th>
+                                    <th>Sale Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($sales as $sale)
+                                <tr>
+                                    <td>{{ $sale->product_id }}</td>
+                                    <td>{{ $sale->product_name }}</td>
+                                    <td>{{ $sale->quantity }}</td>
+                                    <td>{{ $sale->sold_at }}</td>
+                                    <td>${{ number_format($sale->sale_total, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ route('sales.export') }}" class="btn btn-success">Export All to CSV</a>
+                        {{ $sales->appends(request()->query())->links() }}
+                    </div>
+                </div>
+            </div>
+        @elseif(isset($reports) && count($reports) > 0)
         <div class="card">
             <div class="card-header d-flex justify-content-between">
                 <h5>Results for {{ $start_date }} to {{ $end_date }}</h5>

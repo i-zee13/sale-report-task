@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ProductSaleExport;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,7 @@ class SalesController extends Controller
     {
         $start          = $request->query('start_date');
         $end            = $request->query('end_date'); 
-        $limit          = $request->query('limit', 10);
+        $limit          = $request->query('limit');
         $report         = self::salesReport($start, $end, $limit); 
         $fileName       = "sales_report_{$start}_to_{$end}.csv";
         return Excel::download(new ProductSaleExport($report), $fileName);
@@ -43,7 +44,7 @@ class SalesController extends Controller
         $report         = self::salesReport($start, $end, $limit);
         return response()->json($report);
     }   
-    static function salesReport($start, $end, $limit){
+    static function salesReport($start = null, $end = null, $limit = null){
         $query          = " 1=1"; 
         $current_date   = date('Y-m-d'); 
         if (isset($start) != '' && isset($end) != '') {
@@ -53,7 +54,11 @@ class SalesController extends Controller
         }  
         $cacheKey       = "sales_report_{$start}_{$end}"; 
         $report         = Cache::remember($cacheKey, 300, function () use ($query, $limit) {
-    
+            if($limit != null){
+                $limit = "LIMIT $limit";
+            }else{
+                $limit = "";
+            }
                 $sales = DB::select("
                                 SELECT 
                                     p.id AS product_id,
@@ -70,11 +75,19 @@ class SalesController extends Controller
                                     p.id, p.name
                                 ORDER BY 
                                     total_sales DESC
-                                LIMIT $limit;
+                                $limit;
                             ");  
                             
                         return $sales;
                     });
         return $report;
     }
+    public function allList(Request $request)
+    {
+        $sales = Sale::with('product')
+        ->orderBy('sold_at', 'desc')
+        ->paginate(10);
+
+    return view('sale', compact('sales'));
+    } 
 }

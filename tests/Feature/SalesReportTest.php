@@ -13,7 +13,7 @@ class SalesReportTest extends TestCase
 
     public function test_sales_report_calculates_correctly(): void
     {
-        // Create test products
+       
         $product1 = Product::factory()->create([
             'name' => 'Test Product 1',
             'price' => 100.00
@@ -29,51 +29,42 @@ class SalesReportTest extends TestCase
             'price' => 75.00
         ]);
         
-        // Create test sales (all within the test date range)
-        // Product 1: 5 units x $100 = $500
+        
         Sale::create([
             'product_id' => $product1->id,
             'quantity' => 5,
             'sold_at' => '2024-01-15'
         ]);
         
-        // Product 2: 10 units x $50 = $500
+         
         Sale::create([
             'product_id' => $product2->id,
             'quantity' => 10,
             'sold_at' => '2024-01-20'
         ]);
         
-        // Product 3: 4 units x $75 = $300
+        
         Sale::create([
             'product_id' => $product3->id,
             'quantity' => 4,
             'sold_at' => '2024-01-25'
         ]);
-        
-        // Add another sale for Product 1: 2 units x $100 = $200 (total now $700)
+         
         Sale::create([
             'product_id' => $product1->id,
             'quantity' => 2,
             'sold_at' => '2024-01-30'
         ]);
-        
-        // Test the API endpoint - Use json() method to ensure JSON response
+         
         $response = $this->getJson('/sales-report-json?start_date=2024-01-01&end_date=2024-01-31');
         
         $response->assertStatus(200);
         $data = $response->json();
         
-        // Expected order by total sales (highest first):
-        // 1. Product 1: $700 (7 units)
-        // 2. Product 2: $500 (10 units)
-        // 3. Product 3: $300 (4 units)
         
         $this->assertCount(3, $data);
-        
-        // Check if $data is an associative array or has numeric indices
-        $firstItem = $data[0];
-        
+         
+        $firstItem = $data[0]; 
         // Adjust assertions based on whether $firstItem is an object or array
         if (is_array($firstItem)) {
             // Using array notation
